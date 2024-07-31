@@ -1,0 +1,35 @@
+name: Build and Release iOS App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up Xcode
+        uses: apple-actions/setup-xcode@v3
+        with:
+          xcode-version: '14.0'  # Specify your Xcode version
+      
+      - name: Install dependencies
+        run: |
+          brew install cocoapods
+          pod install
+
+      - name: Build the app
+        run: xcodebuild -workspace YourApp.xcworkspace -scheme YourApp -sdk iphoneos -configuration Release archive -archivePath ${{ github.workspace }}/build/YourApp.xcarchive
+
+      - name: Export the IPA
+        run: xcodebuild -exportArchive -archivePath ${{ github.workspace }}/build/YourApp.xcarchive -exportOptionsPlist ExportOptions.plist -exportPath ${{ github.workspace }}/build
+
+      - name: Upload IPA to GitHub Releases
+        uses: actions/upload-artifact@v3
+        with:
+          name: YourApp.ipa
+          path: ${{ github.workspace }}/build/YourApp.ipa
